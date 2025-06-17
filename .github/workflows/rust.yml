@@ -17,11 +17,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install Clang + LLVM dependencies
+    - name: Install OpenCV + Clang + LLVM
       run: |
         sudo apt update
-        sudo apt install -y clang llvm-dev libclang-dev
+        sudo apt install -y \
+          clang \
+          llvm-dev \
+          libclang-dev \
+          pkg-config \
+          libopencv-dev
 
     - name: Build
       run: cargo build --verbose
-
