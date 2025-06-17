@@ -16,5 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install Clang + LLVM dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y clang llvm-dev libclang-dev
+
     - name: Build
       run: cargo build --verbose
+
