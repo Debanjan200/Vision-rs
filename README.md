@@ -10,6 +10,9 @@ A real-time image processing pipeline in Rust using OpenCV.
 - Compare frame differences and highlight moving objects
 - Store final result of every frame
 - Display Actaul Frame, Final output and motion-detected result
+- Gui feature to play or pause video
+- Command-Line Args source video path can be provided
+- Contour size, area are stored in a csv for log every frame
 
 ## Build Instructions
 
