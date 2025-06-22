@@ -7,3 +7,7 @@ edition = "2021"
 [dependencies]
 opencv = "0.94.4"
 anyhow = "1.0"
+eframe = "0.27"   # or latest
+egui = "0.27"
+image = "0.25"
+clap = { version = "4.0", features = ["derive"] }

@@ -21,7 +21,7 @@ impl TelemetryLogger {
 
         writeln!(
             file,
-            "frame_number,timestamp_sec,total_count,small,medium,large,avg_area,max_area,min_area"
+            "frame_number,total_count,small,medium,large,avg_area,max_area,min_area"
         )?;
 
         Ok(Self { file })
@@ -31,7 +31,6 @@ impl TelemetryLogger {
     pub fn log(
         &mut self,
         frame_number: usize,
-        timestamp_sec: f64,
         objects: &[(f64, String)],
     ) -> std::io::Result<()> {
         let mut areas = Vec::new();
@@ -60,9 +59,8 @@ impl TelemetryLogger {
 
         writeln!(
             self.file,
-            "{},{:.2},{},{},{},{},{:.2},{:.2},{:.2}",
+            "{},{},{},{},{},{:.2},{:.2},{:.2}",
             frame_number,
-            timestamp_sec,
             count,
             small,
             medium,

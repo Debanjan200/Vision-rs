@@ -61,16 +61,23 @@ pub fn track_objects(image: &core::Mat) -> Result<(core::Mat, Vec<(f64, String)>
 }
 
 /// Highlight the objects which are moving
-pub fn highlight_motion(current: &core::Mat, colored: &mut core::Mat) -> Result<()> {
-    let mut gray = core::Mat::default();
-    imgproc::cvt_color(current, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
+pub fn highlight_motion(current: &core::Mat, mut colored: core::Mat) -> Result<()> {
+    let mut gray = Mat::default();
 
-    let mut diff = core::Mat::default();
-    let mut thresh = core::Mat::default();
+    // Detect if already grayscale or not
+    if current.channels() > 1 {
+        imgproc::cvt_color(current, &mut gray, imgproc::COLOR_BGR2GRAY, 0)?;
+    } else {
+        gray = current.clone();
+    }
+
     let mut motion_detected = false;
 
     unsafe {
         if let Some(prev) = &PREV_FRAME {
+            let mut diff = Mat::default();
+            let mut thresh = Mat::default();
+
             core::absdiff(&gray, prev, &mut diff)?;
             imgproc::threshold(&diff, &mut thresh, 25.0, 255.0, imgproc::THRESH_BINARY)?;
 
@@ -79,7 +86,9 @@ pub fn highlight_motion(current: &core::Mat, colored: &mut core::Mat) -> Result<
                 core::Size::new(3, 3),
                 core::Point::new(-1, -1),
             )?;
+
             let mut dst = Mat::default();
+
             imgproc::dilate(
                 &thresh,
                 &mut dst,
@@ -90,25 +99,22 @@ pub fn highlight_motion(current: &core::Mat, colored: &mut core::Mat) -> Result<
                 imgproc::morphology_default_border_value()?,
             )?;
 
-            thresh = dst;
-
             let mut contours = opencv::core::Vector::<opencv::core::Vector<opencv::core::Point>>::new();
-
             imgproc::find_contours(
-                &thresh,
+                &dst,
                 &mut contours,
                 imgproc::RETR_EXTERNAL,
                 imgproc::CHAIN_APPROX_SIMPLE,
                 core::Point::new(0, 0),
             )?;
 
-            for contour in contours {
+            for contour in contours.iter() {
                 let area = imgproc::contour_area(&contour, false)?;
                 if area > 500.0 {
                     motion_detected = true;
                     let rect = imgproc::bounding_rect(&contour)?;
                     imgproc::rectangle(
-                        colored,
+                        &mut colored,
                         rect,
                         core::Scalar::new(0.0, 255.0, 0.0, 0.0),
                         2,
@@ -126,9 +132,10 @@ pub fn highlight_motion(current: &core::Mat, colored: &mut core::Mat) -> Result<
                 };
 
                 if should_save {
+                    fs::create_dir_all("motion_detection")?;
                     let timestamp = now.duration_since(UNIX_EPOCH)?.as_millis();
                     let filename = format!("motion_detection/motion_{}.jpg", timestamp);
-                    imgcodecs::imwrite(&filename, colored, &opencv::core::Vector::<i32>::new())?;
+                    imgcodecs::imwrite(&filename, &mut colored, &opencv::core::Vector::<i32>::new())?;
                     LAST_SNAPSHOT_TIME = Some(now);
                 }
             }
